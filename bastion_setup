@@ -1,0 +1,4 @@
+bastion_ami: ami-0000000000
+region: us-east-2
+MYIP: 192.168.233.1/32 
+ 
