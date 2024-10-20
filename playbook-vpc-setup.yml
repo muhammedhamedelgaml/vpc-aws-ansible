@@ -1,0 +1,23 @@
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+
+  tasks: 
+   - name: import vpc vars 
+     ansible.builtin.include_vars: vars/vpc_setup
+
+
+   - name: create vpc
+     amazon.aws.ec2_vpc_net:
+      name: "{{vpc_name}}"
+      cidr_block: "{{vpc-cidr}}"
+      region: {{region}}
+      dns_support: yes
+      dns_hostnames: yes
+      tenancy: default
+      state: "{{state}}" 
+     register: vpc_out   
+
+ ## ansible-playbook vpc-setup.yml 
+     
