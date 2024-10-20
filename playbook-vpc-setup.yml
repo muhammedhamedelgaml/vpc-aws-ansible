@@ -19,5 +19,52 @@
       state: "{{state}}" 
      register: vpc_out   
 
- ## ansible-playbook vpc-setup.yml 
+
+  #  - name: print output
+  #    ansible.builtin.debug:
+  #     var: vpc_out
+
+
+   - name: create pub1 subnet in zone1
+     amazon.aws.ec2_vpc_subnet:
+       vpc_id: "{{vpc_out.vpc.id}}" 
+       region: "{{region}}"
+       az: "{{zone1}}"
+       state: "{{state}}"  
+       cidr: "{{pub-sub1}}"   
+       map_public: yes
+       resource_tags:
+        name: vpro-pubsub1 
+     register: pubsub1_out  
+
+   - name: create pub2 subnet in zone2
+     amazon.aws.ec2_vpc_subnet:
+       vpc_id: "{{vpc_out.vpc.id}}" 
+       region: "{{region}}"
+       az: "{{zone2}}"
+       state: "{{state}}"  
+       cidr: "{{pub-sub2}}"   
+       map_public: yes
+       resource_tags:
+        name: vpro-pubsub2 
+     register: pubsub2_out  
+   
+   
+   - name: create pub3 subnet in zone3
+     amazon.aws.ec2_vpc_subnet:
+       vpc_id: "{{vpc_out.vpc.id}}" 
+       region: "{{region}}"
+       az: "{{zone3}}"
+       state: "{{state}}"  
+       cidr: "{{pub-sub3}}"   
+       map_public: yes
+       resource_tags:
+        name: vpro-pubsub3 
+     register: pubsub3_out  
+      
+          
      
+
+
+
+ ## ansible-playbook vpc-setup.yml 
