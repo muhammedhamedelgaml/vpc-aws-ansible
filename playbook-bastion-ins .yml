@@ -5,7 +5,7 @@
 
   tasks: 
    - name: import bastion  vars 
-     ansible.builtin.include_vars: vars/bastion_setup 
+     ansible.builtin.include_vars: vars/vpc_setup
 
    - name: import output vars 
      ansible.builtin.include_vars: vars/output_vars
