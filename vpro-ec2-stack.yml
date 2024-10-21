@@ -185,3 +185,15 @@
         - protocol: http
           load_balancer_port: 80
           instance_port: 80 
+
+
+         ## save private ips in file 
+   - name: add int private ip in file
+     ansible.builtin.blockinfile:
+      path:  provision-stack/group_vars/hosts_ip     
+      block: |
+       web01_ip : "{{nginx_out.tagged_instances[0].private_ip}}"
+       app01_ip : "{{tomcat_out.tagged_instances[0].private_ip}}"
+       mc01_ip : "{{memcache_out.tagged_instances[0].private_ip}}"
+       rmq01_ip : "{{rabbitmq_out.tagged_instances[0].private_ip}}"     
+       db01_ip : "{{_out.tagged_instances[0].private_ip}}"         
