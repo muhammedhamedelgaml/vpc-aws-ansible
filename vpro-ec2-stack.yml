@@ -169,3 +169,19 @@
   #    ansible.builtin.debug:
   #     var: nginx_out.tagged_instances[0].id
 
+   - name: create load balancer
+     amazon.aws.ec2_elb_lb:
+      name: vpro-LB
+      region: "{{region}}"
+      state: present
+      instance_ids: "{{tomcat_out.tagged_instances[0].id}}"
+      purge_instance_ids: yes
+      security_group_ids: "{{vproLB-SG_out.group_id}}}"
+      subnets:
+        - "{{pubsub1id}}"
+        - "{{pubsub2id}}"      
+        - "{{pubsub3id}}"
+      listeners:
+        - protocol: http
+          load_balancer_port: 80
+          instance_port: 80 
