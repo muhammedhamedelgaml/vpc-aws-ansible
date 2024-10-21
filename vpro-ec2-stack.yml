@@ -73,3 +73,99 @@
 
 
 
+                        ################################## 
+                        ## instances 
+
+   - name: create nginx web01
+     amazon.aws.ec2_instance:
+      name: web01
+      key_name: vprokey
+      region: "{{region}}"
+      instance_type: t2.mirco 
+      image: "{{nginx_ami}}"
+      wait: yes
+      wait_timeout: 200
+      tags:
+       name: "web01"
+       project: "vprofile"
+      exact_count:  1
+      security_group: "{{vproStack-SG_out.group_id}}"
+      vpc_subnet_id: "{{privsub1id}}"
+     register: nginx_out
+
+   - name: create tomcat  app01
+     amazon.aws.ec2_instance:
+      name: app01
+      key_name: vprokey
+      region: "{{region}}"
+      instance_type: t2.mirco 
+      image: "{{tomcat_ami}}"
+      wait: yes
+      wait_timeout: 200
+      tags:
+       name: "app01"
+       project: "vprofile"
+      exact_count:  1
+      security_group: "{{vproStack-SG_out.group_id}}"
+      vpc_subnet_id: "{{privsub1id}}"
+     register: tomcat_out        
+
+
+   - name: create memcache  mc01
+     amazon.aws.ec2_instance:
+      name: mc01
+      key_name: vprokey
+      region: "{{region}}"
+      instance_type: t2.mirco 
+      image: "{{memcache_ami}}"
+      wait: yes
+      wait_timeout: 200
+      tags:
+       name: mc01"
+       project: "vprofile"
+      exact_count:  1
+      security_group: "{{vproStack-SG_out.group_id}}"
+      vpc_subnet_id: "{{privsub1id}}"
+     register: memcache_out        
+
+
+   - name: create rabbitmq  rmq01
+     amazon.aws.ec2_instance:
+      name: rmq01
+      key_name: vprokey
+      region: "{{region}}"
+      instance_type: t2.mirco 
+      image: "{{rmq_ami}}"
+      wait: yes
+      wait_timeout: 200
+      tags:
+       name: "rmq01"
+       project: "vprofile"
+      exact_count:  1
+      security_group: "{{vproStack-SG_out.group_id}}"
+      vpc_subnet_id: "{{privsub1id}}"
+     register: rabbitmq_out        
+
+
+   - name: create mysql  db01
+     amazon.aws.ec2_instance:
+      name: db01
+      key_name: vprokey
+      region: "{{region}}"
+      instance_type: t2.mirco 
+      image: "{{mysql_ami}}"
+      wait: yes
+      wait_timeout: 200
+      tags:
+       name: "db01"
+       project: "vprofile"
+      exact_count:  1
+      security_group: "{{vproStack-SG_out.group_id}}"
+      vpc_subnet_id: "{{privsub1id}}"
+     register: mysql_out  
+
+
+  #  - name: print vars
+  #    ansible.builtin.debug:
+  #     var: nginx_out.tagged_instances[0].id
+
