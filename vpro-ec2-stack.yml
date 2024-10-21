@@ -196,4 +196,48 @@
        app01_ip : "{{tomcat_out.tagged_instances[0].private_ip}}"
        mc01_ip : "{{memcache_out.tagged_instances[0].private_ip}}"
        rmq01_ip : "{{rabbitmq_out.tagged_instances[0].private_ip}}"     
-       db01_ip : "{{_out.tagged_instances[0].private_ip}}"         
+       db01_ip : "{{mysql_out.tagged_instances[0].private_ip}}"         
+
+
+
+   - name: insert inventory file  at provision-stack/inventory-vpro
+     ansible.builtin.blockinfile:
+       path: provision-stack/inventory-vpro
+       block: |
+        web01_ip  ansible_host={{nginx_out.tagged_instances[0].private_ip}}
+        app01_ip ansible_host={{tomcat_out.tagged_instances[0].private_ip}}
+        mc01_ip ansible_host={{memcache_out.tagged_instances[0].private_ip}}
+        rmq01_ip ansible_host={{rabbitmq_out.tagged_instances[0].private_ip}}     
+        db01_ip  ansible_host={{mysql_out.tagged_instances[0].private_ip}}
+        ctllocal ansible_host=127.0.0.1 ansible_connection=local            
+
+        [web]
+        web01
+
+        [app]
+        app01
+
+        [rmq]
+        rmq01
+
+        [mem]
+        mc01
+
+        [db]
+        db01
+
+        [control]
+        ctllocal
+
+
+        [stack:children]
+        web
+        app
+        rmq
+        mem
+        db
+
+        [stack:vars]
+        ansible_user=ubuntu
+        ansible_ssh_private_key_file=./vpro.pem
+        
