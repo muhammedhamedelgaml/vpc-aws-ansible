@@ -160,4 +160,56 @@
           gateway_id: "{{NAT_GW_out.gateway_id}}"      
      register: priv_RT_out 
 
+########################
+# we need to store var like id of subnet,vpc .into a file so we can reuse it later 
+
+
+   - name: print vars
+     ansible.builtin.debug:
+      var: "{{ item }}"
+     loop: 
+        - vpc_out.vpc.id
+        - privsub1_out.subnet.id
+        - privsub2_out.subnet.id
+        - privsub3_out.subnet.id         
+        - pubsub1_out.subnet.id
+        - pubsub2_out.subnet.id
+        - pubsub3_out.subnet.id
+        - NAT_GW_out.gateway_id
+        - IGW_out.gateway_id 
+        - priv_RT_out.route_table.id
+        - pub_RT_out.route_table.id
+        
+   # we need to store them
+
+
+   - name: store vars using set-fact
+     ansible.builtin.set_fact:
+      vpcid: "{{vpc_out.vpc.id}}"
+      privsub1id: "{{privsub1_out.subnet.id}}"
+      privsub2id: "{{privsub2_out.subnet.id}}"
+      privsub3id: "{{privsub3_out.subnet.id}}"
+      pubsub1id: "{{pubsub1_out.subnet.id}}"
+      pubsub2id: "{{pubsub2_out.subnet.id}}"
+      pubsub3id: "{{pubsub3_out.subnet.id}}"
+      igwid:  "{{IGW_out.gateway_id }}"
+      natgwid: "{{NAT_GW_out.gateway_id}}"
+      pubRTid: "{{pub_RT_out.route_table.id}}"
+      privRTid:  "{{priv_RT_out.route_table.id}}"
+      cacheable: yes # to cache vars 
+
+
+  # now store at file 
+
+   - name: copy vars to file 
+     ansible.builtin.copy:
+      content: "  vpcid: {{vpc_out.vpc.id}} \n privsub1id: {{privsub1_out.subnet.id}} \n     privsub2id: {{privsub2_out.subnet.id}} \n privsub3id: {{privsub3_out.subnet.id}} \n pubsub1id: {{pubsub1_out.subnet.id}} \n  pubsub2id: {{pubsub2_out.subnet.id}} \n  pubsub3id: {{pubsub3_out.subnet.id}} \n  pubsub3id: {{pubsub3_out.subnet.id}} \n  natgwid: {{NAT_GW_out.gateway_id}} \n pubRTid: {{pub_RT_out.route_table.id}} \n privRTid:{{priv_RT_out.route_table.id}}"    
+      dest: vars/output_vars
+
+
+
+
+
+
+
  ## ansible-playbook vpc-setup.yml 
