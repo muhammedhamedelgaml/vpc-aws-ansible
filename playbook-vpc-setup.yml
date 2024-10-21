@@ -203,7 +203,7 @@
 
    - name: copy vars to file 
      ansible.builtin.copy:
-      content: "  vpcid: {{vpc_out.vpc.id}} \n privsub1id: {{privsub1_out.subnet.id}} \n     privsub2id: {{privsub2_out.subnet.id}} \n privsub3id: {{privsub3_out.subnet.id}} \n pubsub1id: {{pubsub1_out.subnet.id}} \n  pubsub2id: {{pubsub2_out.subnet.id}} \n  pubsub3id: {{pubsub3_out.subnet.id}} \n  pubsub3id: {{pubsub3_out.subnet.id}} \n  natgwid: {{NAT_GW_out.gateway_id}} \n pubRTid: {{pub_RT_out.route_table.id}} \n privRTid:{{priv_RT_out.route_table.id}}"    
+      content: "  region:{region}\n vpcid: {{vpc_out.vpc.id}} \n privsub1id: {{privsub1_out.subnet.id}} \n     privsub2id: {{privsub2_out.subnet.id}} \n privsub3id: {{privsub3_out.subnet.id}} \n pubsub1id: {{pubsub1_out.subnet.id}} \n  pubsub2id: {{pubsub2_out.subnet.id}} \n  pubsub3id: {{pubsub3_out.subnet.id}} \n  pubsub3id: {{pubsub3_out.subnet.id}} \n  natgwid: {{NAT_GW_out.gateway_id}} \n pubRTid: {{pub_RT_out.route_table.id}} \n privRTid:{{priv_RT_out.route_table.id}}"    
       dest: vars/output_vars
 
  ## ansible-playbook vpc-setup.yml 
