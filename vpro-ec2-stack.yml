@@ -1,0 +1,26 @@
+---
+- name: setup vprofile stack 
+  hosts: localhost
+  connection: local
+  gather_facts: no 
+
+  tasks:
+   - name: include vpc vars 
+     ansible.builtin.include_vars:  vars/output_vars
+
+   - name: include vpro-stack vars 
+     ansible.builtin.include_vars:  vars/vpro-stack-setup 
+
+   - name: create key for vprofile ec2 
+     amazon.aws.ec2_key:
+      name: vprokey
+      region: "{{region}}"
+     register: vprokey_out
+
+
+   - name: save private key in file
+     ansible.builtin.copy:
+      content: "{{vprokey_out.key.private_key}}"   
+      dest: ./vprokey.pem
+      mode: 0600 
+     when: vprokey.changed 
