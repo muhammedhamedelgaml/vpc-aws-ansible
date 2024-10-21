@@ -1,0 +1,61 @@
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+
+  tasks: 
+   - name: import bastion  vars 
+     ansible.builtin.include_vars: vars/bastion_setup 
+
+   - name: import output vars 
+     ansible.builtin.include_vars: vars/output_vars
+
+   - name: create key
+     amazon.aws.ec2_key:
+      name: bastion-key
+      region: "{{region}}"
+     register: key_out
+
+   - name: store private-key
+     ansible.builtin.copy:
+      content: {{ key_out.key.private_key }} 
+      dest: ./bastion-key.pem
+      mode: 0600
+     when: key_out.changed # store key when only file created
+
+
+   - name: create security group for bastion host
+     amazon.aws.ec2_group:
+      name: bastion_host_sg
+      description: allow port 22 from everywhere 
+      region: "{{region}}"
+      vpc_id: "{{vpcid}}"
+      rules:
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip:
+            - "{{MYIP}}"
+     register: bastion_sg_out      
+
+
+
+   - name: create ec2 bastion_host
+     amazon.aws.ec2_instance:
+      key_name: bastion-key
+      region: "{{region}}"
+      instance_type: t2.micro 
+      image: "{{bastion_ami}}"    
+      wait: yes
+      wait_timeout: 200
+      tags: # to make it idempotent . so if you run playbook again it does't create new one
+         name: "bastion-host"
+         project: "vprofile"
+      exact_count: 1 
+      group_id: "{{bastion_sg_out.group_id}}" 
+      vpc_subnet_id: "{{ pubsub1id }}"
+     register: bastion_out
+
+########################
+########PHASE ONE#########
+##########################
