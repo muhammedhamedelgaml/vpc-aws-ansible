@@ -111,13 +111,25 @@
        resource_tags:
          name: vpro-IGW 
      register: IGW_out
-                     
 
 
-        
-          
-     
 
+   - name: route table for public subnets 
+     amazon.aws.ec2_vpc_route_table:
+       vpc_id: "{{ vpc_out.vpc.id }}" 
+       region: "{{region}}"
+       state: "{{state}}" 
+       tags:
+         name: vpro-IGW       
+       subnets:
+        - {{pubsub1_out.subnet.id}}
+        - {{pubsub2_out.subnet.id}}
+        - {{pubsub3_out.subnet.id}}
+       routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{IGW_out.gateway_id}}"      
+     register: pub_RT_out 
+ 
 
 
  ## ansible-playbook vpc-setup.yml 
