@@ -24,3 +24,52 @@
       dest: ./vprokey.pem
       mode: 0600 
      when: vprokey.changed 
+
+
+   - name: create SG for load balancer
+     amazon.aws.ec2_group:
+      name: vproLB-SG
+      description: allow port 80 from everywhere and all port within SG
+      region: "{{region}}"
+      vpc_id: "{{vpcid}}"
+      purge_rules: no  ## for idempotent // to not update it 
+      rules:
+        - proto: tcp
+          from_port: 80
+          to_port: 80 
+          cidr_ip: 0.0.0.0/0
+     register: vproLB-SG_out
+
+
+   - name: create SG for vprofile stack 
+     amazon.aws.ec2_group:
+      name: vproStack-SG
+      region: "{{region}}"
+      vpc_id: "{{vpcid}}"
+      purge_rules: no
+      rules:  ## allow port 80 from LB SG
+        - proto: tcp
+          from_port: 80
+          to_port: 80 
+          group_id: "{{vproLB-SG_out.group_id}}"
+     
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          group_id: "{{bastionSGid}}"
+     register: vproStack-SG_out              
+
+
+          ## FOR interact with each others 
+   - name: update vpro-stack SG with it's own sg id    
+     amazon.aws.ec2_group:
+      name: vproStack-SG
+      region: "{{region}}"
+      vpc_id: "{{vpcid}}"
+      purge_rules: no
+      rules:  
+        - proto: all
+          group_id: "{{vproStack-SG_out.group_id}}"
+
+
+
