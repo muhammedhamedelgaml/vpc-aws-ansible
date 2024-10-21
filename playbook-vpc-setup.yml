@@ -131,5 +131,18 @@
      register: pub_RT_out 
  
 
+ ## now for private subnets create nat gateway and route table 
+
+
+   - name: create nat gateway and allocate new elastic ip if nat gateway does't yet exist 
+     amazon.aws.ec2_vpc_nat_gateway:
+      state: "{{state}}" 
+      subnet_id: "{{pubsub1_out.subnet.id}}"  # we will create only one nat gateway in one single pub subnet becuse it's not free 
+      wait: yes
+      region: "{{region}}"
+      if_exist_do_not_create: yes
+     register: NAT_GW_OUT
+            
+
 
  ## ansible-playbook vpc-setup.yml 
