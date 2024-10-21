@@ -1,0 +1,3 @@
+---
+- import_playbook: playbook-vpc-setup.yml
+- import_playbook: playbook-bastion-ins.yml
