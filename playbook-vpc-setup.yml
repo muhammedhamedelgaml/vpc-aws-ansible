@@ -143,6 +143,21 @@
       if_exist_do_not_create: yes
      register: NAT_GW_OUT
             
+# now create RT for private subnets to route the traffic to nat gateway 
 
+   - name: route table for private subnets 
+     amazon.aws.ec2_vpc_route_table:
+       vpc_id: "{{ vpc_out.vpc.id }}" 
+       region: "{{region}}"
+       tags:
+         name: vpro-IGW       
+       subnets:
+        - {{privsub1_out.subnet.id}}
+        - {{privsub2_out.subnet.id}}
+        - {{privsub3_out.subnet.id}}
+       routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{NAT_GW_out.gateway_id}}"      
+     register: priv_RT_out 
 
  ## ansible-playbook vpc-setup.yml 
