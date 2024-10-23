@@ -1,0 +1,21 @@
+---
+- name: add hosts ip in /etc/hosts  
+  hosts: all
+  tasks:
+   
+   - name: import hostsip vars  
+     ansible.builtin.include_vars:
+       group_vars/hostsip
+
+
+   - name: update /etc/hosts in all hosts 
+     ansible.builtin.blockinfile:
+      path: /etc/hosts
+      block: |
+       {{web01_ip}} web01
+       {{app01_ip}} app01
+       {{rmq01_ip}} rmq01 
+       {{mc01_ip}} mc01
+       {{db01_ip}} db01
+       
+     
