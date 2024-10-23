@@ -1,0 +1,55 @@
+---
+- name: build artifact 
+  hosts: localhost
+  connection: local
+  tasks:
+
+   - name: install jdk, maven, git 
+     ansible.builtin.apt:
+      name: {{item}}
+      state: present
+      update_cache: yes
+     loop:
+      - git 
+      - openjdk-8-jdk 
+      - maven  
+
+
+
+   - name: clone source code 
+     ansible.builtin.git:
+      repo: https://github.com/muhammedhamedelgaml/vprofile-project.git
+      dest: ./vprofile-repo
+      version: vp-rem
+     register: git_status 
+      
+
+   - name: mvn install (build artifact)
+     ansible.builtin.command: "mvn install"
+     args: 
+      chdir: vprofile-repo 
+     when: git_status.changed   ## to do command only when: there is change >  commit 
+     register: mvn_info 
+
+      
+   - name: copy artifact to files dir 
+     ansible.builtin.copy:
+      src: {{item}}
+      dest: files/ROOT.war 
+     with_fileglob: vprofile-repo/target/*.war 
+####OR#####
+  #  - name: copy artifact to files dir
+  #    ansible.builtin.command: "cp vprofile-repo/target/vprofile-v2-war files/*"
+
+
+   - name: copy sql file to files dir 
+     ansible.builtin.copy:
+       src:  vprofile-repo/src/main/resources/db_backup.sql
+       dest: files/db_backup.sql
+####OR#####
+  # with command  
+
+
+
+
+   
