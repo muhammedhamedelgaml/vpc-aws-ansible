@@ -1,0 +1,39 @@
+---
+
+- name: build artifact & and copy sql file 
+  ansible.builtin.import_playbook:
+    build.yml
+
+
+- name: add hosts ip in /etc/hosts  
+  ansible.builtin.import_playbook:
+    hostip_map.yml
+
+- name: setup dbserver 
+  ansible.builtin.import_playbook:
+       db.yml
+
+- name:  deploy sql file on dbserver  
+  ansible.builtin.import_playbook:
+      dbdeploy.yml 
+
+- name: setup memcache 
+  ansible.builtin.import_playbook:
+     memcache.yml
+
+- name:  setup rabbitmq 
+  ansible.builtin.import_playbook:
+         rabbitmq.yml
+
+- name:  setup tomcat
+  ansible.builtin.import_playbook:
+       appserver.yml      
+           
+      
+- name:  setup nginx
+  ansible.builtin.import_playbook:
+     web.yml
+
+
+
+    
