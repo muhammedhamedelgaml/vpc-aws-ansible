@@ -1,0 +1,34 @@
+---
+- name: install memcache 
+  hosts: mcgrp
+  gather_facts: false
+  tasks: 
+   
+   - name: install memcache 
+     ansible.builtin.apt:
+      name: memcache 
+      state: present
+      update_cache: yes
+
+
+   - name: start svc 
+     ansible.builtin.service:
+      name: memcache
+      state: started
+      enabled: yes
+
+
+   - name: enable remote login 
+     ansible.builtin.lineinfile:
+      path: /etc/memcahced.conf 
+      regexp: '^-l'
+      line: '-l 0.0.0.0' 
+      backup: yes
+     notify: restart memcache
+
+  handlers: 
+   - name: restart memcache 
+     ansible.builtin.service:
+      name: memcache 
+      state: restarted
+      
