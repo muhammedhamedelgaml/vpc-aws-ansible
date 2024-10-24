@@ -1,0 +1,55 @@
+--- 
+- name: setup mysql & create DB accounts, remote login
+  hosts: dbgrp
+  gather_facts: false 
+  tasks:
+
+   - name: install mysql and dependencies 
+     ansible.builtin.package: 
+      name: "{{item}}"
+      state: present
+     loop:
+      - mysql-server
+      - mysql-client 
+      - python3-mysqldb  # for ubuntu 18 
+     ignore_errors: yes   
+     tags: packages
+
+
+   - name: start service 
+     ansible.builtin.service:
+      name: mysql 
+      state: started
+      enabled: yes
+
+
+   - name: creating mysql user   
+     community.mysql.mysql_user:
+       name: "{{dbuser}}"
+       password: "{{dbpass}}"
+       priv: '*,*:ALL'  # privalliage 
+       host: '%'  ##remote
+       state: present
+
+
+   - name: create mysql DB accounts 
+     ansible.builtin.mysql_db:
+      name: "{{dbname}}"    
+      state: present
+
+
+   - name: enable remote login to mysql
+     ansible.builtin.lineinfile:
+      path: /etc/mysql/mysql.conf.d/mysqld.cnf 
+      regexp: '^bind-address'  
+      line: 'bind-address = 0.0.0.0'    
+      backup: yes
+     notify: restart mysql
+
+  handlers:
+    - name: restart mysql 
+      ansible.builtin.service:
+       name: mysql 
+       state: started
+
+  
