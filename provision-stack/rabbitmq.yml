@@ -1,0 +1,86 @@
+---
+- name: setup rabbitmq
+  hosts: rmqgrp
+  gather_facts: no 
+  tasks: 
+    
+  - name: install erlang repo package 
+    ansible.builtin.apt: 
+     deb: https://packages.erlang-solution.com/erlang_solutions_1.0_all.deb
+
+  - name: add an erlang solution public key 
+    ansible.builtin.apt_key:
+     url: https://packages.erlang-solution.com/ubuntu/erlang_solutions.asc     
+     state: present
+
+
+
+  - name: install erlang
+    ansible.builtin.apt:
+     name: erlang    
+     state: present
+     update_cache: yes
+
+
+  - name: Add an Apt signing key, uses whichever key is at the URL
+    apt_key:
+        url: https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
+        state: present
+
+
+  - apt_repository:
+        repo: deb https://dl.bintray.com/rabbitmq/debian bionic main
+        state: present
+
+
+  - name: Install Rabbit MQ
+    apt:
+        name: rabbitmq-server
+        state: present
+        update_cache: yes
+
+
+
+  - name: Start & Enable RMQ
+    service:
+        name: rabbitmq-server
+        state: started
+        enabled: yes
+
+ 
+
+  - name: config setup 
+    ansible.builtin.copy:
+      content: |
+        [{rabbit,[{loopback_users,[]}]}].
+      dest: /etc/rabbitmq/rabbitmq.config 
+    notify: restart rabbitmq
+
+
+
+  - name: rabbit user 
+    ansible.builtin.rabbitmq_user:
+     user: test
+     password: test
+     configure_priv: .*
+     read_priv: .*
+     write_priv: .*
+     tags: administrator
+     state: present
+    notify: restart rabbitmq
+
+
+  - name: enables plugin "rabbitmq_management" 
+    community.rabbitmq.rabbitmq_plugin:
+     names: rabbitmq_management   
+     state: enabled
+    notify: restart rabbitmq
+ 
+  
+
+  handlers:
+   - name: restart rabbitmq
+     ansible.builtin.service:
+      name: rabbitmq-server
+      state: restarted
+      
