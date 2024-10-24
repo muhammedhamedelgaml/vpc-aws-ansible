@@ -1,0 +1,28 @@
+---
+- name: deploy schema 
+  hosts: dbgrp
+  gather_facts: no
+  tasks: 
+   
+   - name: copy sql to dbserver 
+     ansible.builtin.copy:
+      src: files/db_backup.sql
+      dest: /tmp/db_backup.sql 
+
+
+
+   - name: initialize DB 
+     community.mysql.mysql_db:
+       name: "{{dbname}}"
+       login_user: "{{dbuser}}"  
+       login_password: "{{dbpass}}" 
+       state: import
+       target: /tmp/db_backup.sql 
+     notify: restart mysql
+
+  handlers: 
+   - name: restart mysql
+     ansible.builtin.service:
+        name: mysql
+        state: started
+         
