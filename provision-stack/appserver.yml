@@ -1,0 +1,195 @@
+--- 
+- name: setup tomcat
+  hosts: appgrp 
+  
+  vars: 
+    timestamp: "{{ansible_date_time.date}}_{{ansible_date_time.hour}}_{{ansible_date_time.minute}}"
+    tomcaturl: https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.37/bin/apache-tomcat-8.5.37.tar.gz 
+  tasks:
+    
+   - name: install jdk
+     ansible.builtin.apt:
+      name: openjdk-8-jdk
+      state: present
+      update_cache: yes
+
+
+   - name: download tomcat
+     ansible.builtin.get_url:
+      url: "{{tomcaturl}}"    
+      dest: /tmp/tomcat-8.tar.gz 
+
+
+   - name: create tomcat group 
+     ansible.builtin.group:
+      name: tomcat
+      state: present
+
+   - name: create tomcat user
+     ansible.builtin.user:
+      name: tomcat
+      group: tomcat
+      shell: /bin/nologin 
+      home: /urs/local/tomcat8
+
+   - name: create dir 
+     ansible.builtin.file:
+      path: /tmp/tomcat8 
+      state: directory
+
+   - name: extract tomcat 
+     ansible.builtin.unarchive:
+      src: /tmp/tomcat-8.tar.gz
+      dest: /tmp/tomcat8
+      remote_src: yes 
+      list_files: yes 
+     register: unarchive_out 
+
+  #  - name: print unarchive_out
+  #    ansible.builtin.debug:
+  #     msg: unarchive_out
+
+
+   - name: synchronize /tmp/tomcat8/** /urs/local/tomcat8             
+     ansible.posix.synchronize:
+      src: "/tmp/tomcat8/{{unarchive_info.files[0].split('/')[0]}}" 
+      dest: /urs/local/tomcat8
+     delegate_to: "{{inventory_hostname}}" 
+
+
+   - name: change owner of tomcat home
+     ansible.builtin.file:
+      path: /urs/local/tomcat8
+      owner: tomcat
+      group: tomcat
+      recurse: yes 
+
+
+   - name: setup tomcat svc 
+     ansible.builtin.template: 
+      src: templates/tomcat-svc   
+      dest: /etc/systemd/system/tomcat8.service 
+      mode: "a+x"
+
+
+   - name: daemon reload 
+     ansible.builtin.systemd:
+      daemon_reload: yes
+
+
+
+   - name: Start&Enable      
+     ansible.builtin.service:
+      name: tomcat8 
+      state: started
+      enabled: yes
+
+#############################
+# now deploy
+
+
+   - name: status of ROOT 
+     ansible.builtin.stat:
+      path: /urs/local/tomcat8/webapps/ROOT
+     register: artifact_stat   ## we will use it "if there was  file we will take a backup"
+
+
+
+   - name: stop tomcat
+     ansible.builtin.service:
+      name: tomcat8 
+      state: stopped
+
+
+
+   - name: try to backup and deploy 
+     block: 
+      - name: archive root dir 
+        community.general.archive: 
+         path: /urs/local/tomcat8/webapps/ROOT
+         dest: "/opt/ROOT_{{timestamp}}.tgz"
+        when: artifact_stat.stat.exists  # only when there's a file 
+        register: archive.info 
+
+
+      - name: copy ROOT with old_ROOT 
+        ansible.builtin.shell: 
+          cp -r ROOT old_ROOT 
+        args: 
+         chdir: /urs/local/tomcat8/webapps/
+
+
+      - name: delete current artifact if we take backup
+        ansible.builtin.file:
+         path: "{{item}}"
+         state: absent 
+        when:  archive.info.changed
+        loop: 
+           - /usr/local/tomcat8/webapps/ROOT
+           - /usr/local/tomcat8/webapps/ROOT.war 
+      
+      - name: try to deploy new artifact  if fail restore old one 
+        block:
+          - name: deploy artifact 
+            copy:
+              src: files/ROOT.war
+              dest: /usr/local/tomcat8/webapps/ROOT.war 
+            register: deploy.info 
+        rescue:
+          - name: restore old ROOT 
+            shell:  cp -r old_ROOT ROOT.war 
+            arg:
+              chdir: /usr/local/tomcat8/webapps/
+     
+     resuue: 
+       - name: start svc
+         ansible.builtin.service:         
+          name: tomcat8
+          state: started 
+
+   - name: start svc 
+     ansible.builtin.service:         
+      name: tomcat8
+      state: started 
+    #  when: deploy.info.changed 
+            
+
+   - name: wait until ROOT.war is extracted 
+     ansible.builtin.wait_for:
+      path: /usr/local/tomcat8/webapps/ROOT
+
+
+
+   - name: deploy application.properties 
+     ansible.builtin.template: 
+      src: templates/application.properties.j2
+      dest: /usr/local/tomcat8/webapps/ROOT/WEB-INF/classes/application.properties 
+      force: yes 
+     notify: restart svc 
+
+
+  handlers: 
+   - name: restart svc 
+     ansible.builtin.service:
+      name: tomcat8
+      state: restarted 
+
+            
+
+              
+
+
+        
+         
+          
+           
+
+       
+          
+      
+
+
+
+
+      
+
