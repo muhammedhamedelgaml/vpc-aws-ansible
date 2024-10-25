@@ -1,0 +1,47 @@
+---
+- name: setup nginx
+  hosts: webgrp
+  gather_facts: no 
+  tasks: 
+   
+   - name: install nginx 
+     ansible.builtin.apt:
+      name: nginx
+      state: present
+      update_cache: yes
+
+
+   - name: start svc 
+     ansible.builtin.service: 
+      name: nginx
+      state: started
+      enabled: yes
+
+
+
+##  deploy nginx file (conf.)
+   - name: delete default conf 
+     ansible.builtin.file:
+       path: /etc/nginx/sites-enabled/default
+       state: absent
+
+
+   - name: deploy conf file 
+     ansible.builtin.template:
+      src: templates/nginx.j2 
+      dest: /etc/nginx/sites-available/vproapp  
+
+   - name: enable vproapp 
+     ansible.builtin.file:
+      src: /etc/nginx/sites-available/vproapp  
+      dest: /etc/nginx/sites-available/vproapp  
+      state: link
+     notify: restart svc 
+
+
+  handlers: 
+   - name: restart svc 
+     ansible.builtin.service:
+       name: nginx
+       state: restarted
+       
